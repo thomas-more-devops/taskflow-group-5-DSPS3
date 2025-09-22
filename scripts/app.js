@@ -1,69 +1,101 @@
+/**
+ * TaskFlow - A simple task management app
+ * Handles creating, editing, deleting, and tracking tasks
+ * with persistence in browser localStorage.
+ */
 class TaskFlow {
     constructor() {
+        // Load tasks from localStorage (or start empty)
         this.tasks = this.loadTasks();
+        // Initialize task ID counter based on saved value
         this.taskIdCounter = this.getNextTaskId();
+
+        // Set up app
         this.initializeApp();
-        this.bindEvents();
-        this.renderTasks();
-        this.updateStats();
+        this.bindEvents();    // Attach button & keyboard events
+        this.renderTasks();   // Display tasks on screen
+        this.updateStats();   // Update task statistics
     }
 
+    /**
+     * Runs once when the app is initialized
+     */
     initializeApp() {
         console.log('TaskFlow initialized successfully!');
         this.showWelcomeMessage();
     }
 
+    /**
+     * Show a welcome message if no tasks exist
+     */
     showWelcomeMessage() {
         if (this.tasks.length === 0) {
             console.log('Welcome to TaskFlow! Add your first task to get started.');
         }
     }
 
+    /**
+     * Bind event listeners for buttons and keyboard shortcuts
+     */
     bindEvents() {
         const addTaskBtn = document.getElementById('addTaskBtn');
         const taskInput = document.getElementById('taskInput');
 
+        // Click on "Add task" button
         addTaskBtn.addEventListener('click', () => this.addTask());
-        
+
+        // Press Enter key inside task input field
         taskInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.addTask();
             }
         });
 
-        // Focus on input when page loads
+        // Auto-focus input when page loads
         taskInput.focus();
     }
 
+    /**
+     * Add a new task to the list
+     * Includes error handling for empty input
+     */
     addTask() {
         const taskInput = document.getElementById('taskInput');
         const taskText = taskInput.value.trim();
 
+        // Guard clause: prevent empty tasks
         if (taskText === '') {
             this.showNotification('Please enter a task description', 'warning');
             taskInput.focus();
             return;
         }
 
+        // Create new task object
         const newTask = {
-            id: this.taskIdCounter++,
-            text: taskText,
-            completed: false,
+            id: this.taskIdCounter++,       // unique ID
+            text: taskText,                 // task description
+            completed: false,               // initially not completed
             createdAt: new Date().toISOString(),
             completedAt: null
         };
 
+        // Add task to list and update UI
         this.tasks.push(newTask);
         this.saveTasks();
         this.renderTasks();
         this.updateStats();
-        
+
+        // Reset input field
         taskInput.value = '';
         taskInput.focus();
-        
+
         this.showNotification('Task added successfully!', 'success');
     }
 
+    /**
+     * Delete a task by ID
+     * Confirm dialog prevents accidental deletion
+     */
     deleteTask(taskId) {
         if (confirm('Are you sure you want to delete this task?')) {
             this.tasks = this.tasks.filter(task => task.id !== taskId);
@@ -74,6 +106,9 @@ class TaskFlow {
         }
     }
 
+    /**
+     * Toggle task completion status
+     */
     toggleTask(taskId) {
         const task = this.tasks.find(task => task.id === taskId);
         if (task) {
@@ -82,12 +117,15 @@ class TaskFlow {
             this.saveTasks();
             this.renderTasks();
             this.updateStats();
-            
+
             const message = task.completed ? 'Task completed! 🎉' : 'Task marked as pending';
             this.showNotification(message, 'success');
         }
     }
 
+    /**
+     * Edit a task description
+     */
     editTask(taskId) {
         const task = this.tasks.find(task => task.id === taskId);
         if (task) {
@@ -101,10 +139,14 @@ class TaskFlow {
         }
     }
 
+    /**
+     * Render tasks in the DOM
+     */
     renderTasks() {
         const tasksList = document.getElementById('tasksList');
         const emptyState = document.getElementById('emptyState');
 
+        // Show "empty state" if no tasks exist
         if (this.tasks.length === 0) {
             tasksList.style.display = 'none';
             emptyState.style.display = 'block';
@@ -114,7 +156,7 @@ class TaskFlow {
         tasksList.style.display = 'flex';
         emptyState.style.display = 'none';
 
-        // Sort tasks: incomplete first, then by creation date
+        // Sort: incomplete first, then by creation date
         const sortedTasks = [...this.tasks].sort((a, b) => {
             if (a.completed !== b.completed) {
                 return a.completed - b.completed;
@@ -122,6 +164,7 @@ class TaskFlow {
             return new Date(b.createdAt) - new Date(a.createdAt);
         });
 
+        // Render each task into HTML
         tasksList.innerHTML = sortedTasks.map(task => `
             <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
                 <div class="task-content">
@@ -142,6 +185,9 @@ class TaskFlow {
         `).join('');
     }
 
+    /**
+     * Update statistics (total, completed, pending)
+     */
     updateStats() {
         const totalTasks = this.tasks.length;
         const completedTasks = this.tasks.filter(task => task.completed).length;
@@ -150,12 +196,16 @@ class TaskFlow {
         document.getElementById('totalTasks').textContent = totalTasks;
         document.getElementById('completedTasks').textContent = completedTasks;
         document.getElementById('pendingTasks').textContent = pendingTasks;
-        
+
         // Update task count in header
         const taskCount = document.getElementById('taskCount');
         taskCount.textContent = `${totalTasks} ${totalTasks === 1 ? 'task' : 'tasks'}`;
     }
 
+    /**
+     * Save tasks to localStorage
+     * Error handling for storage failures
+     */
     saveTasks() {
         try {
             localStorage.setItem('taskflow_tasks', JSON.stringify(this.tasks));
@@ -166,6 +216,9 @@ class TaskFlow {
         }
     }
 
+    /**
+     * Load tasks from localStorage
+     */
     loadTasks() {
         try {
             const saved = localStorage.getItem('taskflow_tasks');
@@ -176,6 +229,9 @@ class TaskFlow {
         }
     }
 
+    /**
+     * Get next task ID from storage
+     */
     getNextTaskId() {
         try {
             const saved = localStorage.getItem('taskflow_counter');
@@ -186,6 +242,9 @@ class TaskFlow {
         }
     }
 
+    /**
+     * Prevent XSS by escaping HTML
+     */
     escapeHtml(unsafe) {
         return unsafe
             .replace(/&/g, "&amp;")
@@ -195,11 +254,13 @@ class TaskFlow {
             .replace(/'/g, "&#039;");
     }
 
+    /**
+     * Show a styled notification in the browser
+     */
     showNotification(message, type = 'info') {
-        // Simple notification system
         console.log(`[${type.toUpperCase()}] ${message}`);
-        
-        // Create notification element
+
+        // Create popup div
         const notification = document.createElement('div');
         notification.style.cssText = `
             position: fixed;
@@ -217,26 +278,25 @@ class TaskFlow {
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         `;
 
-        // Set color based on type
+        // Notification colors
         const colors = {
             success: '#48bb78',
             error: '#e53e3e',
             warning: '#ed8936',
             info: '#3182ce'
         };
-        
+
         notification.style.background = colors[type] || colors.info;
         notification.textContent = message;
-        
         document.body.appendChild(notification);
-        
+
         // Animate in
         setTimeout(() => {
             notification.style.opacity = '1';
             notification.style.transform = 'translateY(0)';
         }, 100);
-        
-        // Remove after 3 seconds
+
+        // Auto-dismiss after 3s
         setTimeout(() => {
             notification.style.opacity = '0';
             notification.style.transform = 'translateY(-20px)';
@@ -246,21 +306,26 @@ class TaskFlow {
         }, 3000);
     }
 
-    // Utility methods for potential future features
+    /**
+     * Export tasks to JSON file (for backup)
+     */
     exportTasks() {
         const dataStr = JSON.stringify(this.tasks, null, 2);
-        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(dataBlob);
-        
+
         const link = document.createElement('a');
         link.href = url;
         link.download = 'taskflow_backup.json';
         link.click();
-        
+
         URL.revokeObjectURL(url);
         this.showNotification('Tasks exported successfully!', 'success');
     }
 
+    /**
+     * Clear all tasks with confirmation
+     */
     clearAllTasks() {
         if (confirm('Are you sure you want to delete ALL tasks? This cannot be undone.')) {
             this.tasks = [];
@@ -271,6 +336,9 @@ class TaskFlow {
         }
     }
 
+    /**
+     * Return statistics object for reporting
+     */
     getTaskStats() {
         const now = new Date();
         const stats = {
@@ -291,12 +359,12 @@ class TaskFlow {
     }
 }
 
-// Initialize the app when DOM is loaded
+// Initialize the app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.taskFlow = new TaskFlow();
 });
 
-// Export for potential testing
+// Export class for testing in Node.js (optional)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = TaskFlow;
 }
