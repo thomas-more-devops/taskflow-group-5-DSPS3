@@ -3,11 +3,16 @@ class TaskFlow {
         this.tasks = this.loadTasks();
         this.taskIdCounter = this.getNextTaskId();
         this.currentFilter = 'all';
+
+        this.currentSort = 'created-desc';
+        this.searchQuery = '';
+
+
         this.initializeApp();
         this.bindEvents();
         this.renderTasks();
         this.updateStats();
-        this.setDefaultDueDate();
+
     }
 
     initializeApp() {
@@ -21,17 +26,15 @@ class TaskFlow {
         }
     }
 
-    setDefaultDueDate() {
-        // Set default due date to tomorrow
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const dueDateInput = document.getElementById('dueDateInput');
-        dueDateInput.value = tomorrow.toISOString().split('T')[0];
-    }
 
     bindEvents() {
         const addTaskBtn = document.getElementById('addTaskBtn');
         const taskInput = document.getElementById('taskInput');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearch = document.getElementById('clearSearch');
+        const sortSelect = document.getElementById('sortSelect');
+        const toggleAdvanced = document.getElementById('toggleAdvanced');
+        const clearAllFilters = document.getElementById('clearAllFilters');
 
         addTaskBtn.addEventListener('click', () => this.addTask());
 
@@ -41,11 +44,42 @@ class TaskFlow {
             }
         });
 
-        // Due date filter buttons
-        document.querySelectorAll('.due-date-filter-btn').forEach(btn => {
+
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            this.searchQuery = e.target.value.toLowerCase();
+            this.renderTasks();
+            this.updateSearchResults();
+        });
+
+        clearSearch.addEventListener('click', () => {
+            searchInput.value = '';
+            this.searchQuery = '';
+            this.renderTasks();
+            this.updateSearchResults();
+        });
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                this.setDueDateFilter(e.target.dataset.filter);
+                this.setFilter(e.target.dataset.filter);
             });
+        });
+
+        // Sort functionality
+        sortSelect.addEventListener('change', (e) => {
+            this.currentSort = e.target.value;
+            this.renderTasks();
+        });
+
+        // Advanced panel toggle
+        toggleAdvanced.addEventListener('click', () => {
+            this.toggleAdvancedPanel();
+        });
+
+        // Clear all filters
+        clearAllFilters.addEventListener('click', () => {
+            this.clearAllFilters();
         });
 
         // Focus on input when page loads
@@ -67,7 +101,7 @@ class TaskFlow {
         const newTask = {
             id: this.taskIdCounter++,
             text: taskText,
-            dueDate: dueDate || null,
+
             completed: false,
             createdAt: new Date().toISOString(),
             completedAt: null
@@ -122,151 +156,206 @@ class TaskFlow {
         }
     }
 
-    setDueDateFilter(filter) {
+
+    setFilter(filter) {
         this.currentFilter = filter;
 
         // Update button states
-        document.querySelectorAll('.due-date-filter-btn').forEach(btn => {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+
             btn.classList.remove('active');
         });
         document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
 
         this.renderTasks();
+
+        this.updateSearchResults();
     }
 
-    matchesDueDateFilter(task) {
-        const today = new Date().toISOString().split('T')[0];
+    toggleAdvancedPanel() {
+        const panel = document.getElementById('advancedPanel');
+        const toggleIcon = document.querySelector('.toggle-icon');
+
+        if (panel.style.display === 'none' || !panel.style.display) {
+            panel.style.display = 'block';
+            toggleIcon.textContent = '▲';
+        } else {
+            panel.style.display = 'none';
+            toggleIcon.textContent = '▼';
+        }
+    }
+
+    clearAllFilters() {
+        // Reset search
+        document.getElementById('searchInput').value = '';
+        this.searchQuery = '';
+
+        // Reset filters
+        this.setFilter('all');
+
+        // Reset sort
+        this.currentSort = 'created-desc';
+        document.getElementById('sortSelect').value = 'created-desc';
+
+        this.renderTasks();
+        this.updateSearchResults();
+        this.showNotification('All filters cleared', 'info');
+    }
+
+    matchesSearch(task) {
+        if (!this.searchQuery) return true;
+        return task.text.toLowerCase().includes(this.searchQuery);
+    }
+
+    matchesFilter(task) {
+        const now = new Date();
+        const today = now.toDateString();
+        const taskCreated = new Date(task.createdAt);
+        const isRecent = (now - taskCreated) < (24 * 60 * 60 * 1000); // Last 24 hours
+
 
         switch (this.currentFilter) {
             case 'all':
                 return true;
-            case 'due-today':
-                return task.dueDate === today;
-            case 'overdue':
-                return task.dueDate && task.dueDate < today && !task.completed;
-            case 'no-due-date':
-                return !task.dueDate;
+
+            case 'completed':
+                return task.completed;
+            case 'pending':
+                return !task.completed;
+            case 'recent':
+                return isRecent;
+
             default:
                 return true;
         }
     }
 
     getFilteredTasks() {
-        return this.tasks.filter(task => this.matchesDueDateFilter(task));
+
+        return this.tasks.filter(task =>
+            this.matchesSearch(task) && this.matchesFilter(task)
+        );
     }
 
-    isOverdue(task) {
-        if (!task.dueDate || task.completed) return false;
-        const today = new Date().toISOString().split('T')[0];
-        return task.dueDate < today;
+    getSortedTasks(tasks) {
+        const sortedTasks = [...tasks];
+
+        switch (this.currentSort) {
+            case 'created-desc':
+                return sortedTasks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            case 'created-asc':
+                return sortedTasks.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            case 'alphabetical':
+                return sortedTasks.sort((a, b) => a.text.localeCompare(b.text));
+            case 'completion':
+                return sortedTasks.sort((a, b) => {
+                    if (a.completed !== b.completed) {
+                        return a.completed - b.completed;
+                    }
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                });
+            default:
+                return sortedTasks;
+        }
     }
 
-    isDueToday(task) {
-        if (!task.dueDate) return false;
-        const today = new Date().toISOString().split('T')[0];
-        return task.dueDate === today;
+    highlightSearchTerm(text) {
+        if (!this.searchQuery) return this.escapeHtml(text);
+
+        const regex = new RegExp(`(${this.escapeRegex(this.searchQuery)})`, 'gi');
+        const escapedText = this.escapeHtml(text);
+        return escapedText.replace(regex, '<mark class="search-highlight">$1</mark>');
     }
 
-    formatDueDate(dateString) {
-        if (!dateString) return '';
+    escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
 
-        const date = new Date(dateString);
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+    updateSearchResults() {
+        const searchResults = document.getElementById('searchResults');
+        const filteredTasks = this.getFilteredTasks();
+        const totalTasks = this.tasks.length;
 
-        const taskDate = date.toDateString();
-        const todayString = today.toDateString();
-        const tomorrowString = tomorrow.toDateString();
-
-        if (taskDate === todayString) {
-            return 'Today';
-        } else if (taskDate === tomorrowString) {
-            return 'Tomorrow';
+        if (this.searchQuery || this.currentFilter !== 'all') {
+            searchResults.textContent = `Showing ${filteredTasks.length} of ${totalTasks}`;
+            searchResults.style.display = 'inline';
         } else {
-            return date.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
-            });
+            searchResults.style.display = 'none';
+
         }
     }
 
     renderTasks() {
         const tasksList = document.getElementById('tasksList');
         const emptyState = document.getElementById('emptyState');
-        const filteredTasks = this.getFilteredTasks();
 
-        if (filteredTasks.length === 0) {
+        const noResults = document.getElementById('noResults');
+        const filteredTasks = this.getFilteredTasks();
+        const sortedTasks = this.getSortedTasks(filteredTasks);
+
+        // Hide both states initially
+        emptyState.style.display = 'none';
+        noResults.style.display = 'none';
+
+        if (this.tasks.length === 0) {
+            // No tasks at all
+
             tasksList.style.display = 'none';
             emptyState.style.display = 'block';
             return;
         }
 
+        if (sortedTasks.length === 0) {
+            // Tasks exist but none match filters
+            tasksList.style.display = 'none';
+            noResults.style.display = 'block';
+            return;
+        }
+
+
+        // Show tasks
         tasksList.style.display = 'flex';
-        emptyState.style.display = 'none';
 
-        // Sort tasks: incomplete first, then by due date, then by creation date
-        const sortedTasks = [...filteredTasks].sort((a, b) => {
-            // First sort by completion status
-            if (a.completed !== b.completed) {
-                return a.completed - b.completed;
-            }
-
-            // Then sort by due date (overdue first, then by date)
-            if (a.dueDate && b.dueDate) {
-                return new Date(a.dueDate) - new Date(b.dueDate);
-            } else if (a.dueDate) {
-                return -1;
-            } else if (b.dueDate) {
-                return 1;
-            }
-
-            // Finally sort by creation date (newest first)
-            return new Date(b.createdAt) - new Date(a.createdAt);
-        });
-
-        tasksList.innerHTML = sortedTasks.map(task => {
-            const isOverdue = this.isOverdue(task);
-            const isDueToday = this.isDueToday(task);
-            const dueDateText = this.formatDueDate(task.dueDate);
-
-            return `
-                <div class="task-item ${task.completed ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} ${isDueToday ? 'due-today' : ''}" data-task-id="${task.id}">
-                    <div class="task-content">
-                        <div class="task-checkbox ${task.completed ? 'checked' : ''}"
-                             onclick="taskFlow.toggleTask(${task.id})">
-                        </div>
-                        <span class="task-text">${this.escapeHtml(task.text)}</span>
-                        ${task.dueDate ? `
-                            <span class="due-date-badge ${isOverdue ? 'overdue' : ''} ${isDueToday ? 'due-today' : ''}">
-                                📅 ${dueDateText}
-                            </span>
-                        ` : ''}
+        tasksList.innerHTML = sortedTasks.map(task => `
+            <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
+                <div class="task-content">
+                    <div class="task-checkbox ${task.completed ? 'checked' : ''}"
+                         onclick="taskFlow.toggleTask(${task.id})">
                     </div>
-                    <div class="task-actions">
-                        <button class="task-btn edit-btn" onclick="taskFlow.editTask(${task.id})" title="Edit task">
-                            ✏️
-                        </button>
-                        <button class="task-btn delete-btn" onclick="taskFlow.deleteTask(${task.id})" title="Delete task">
-                            🗑️
-                        </button>
-                    </div>
+                    <span class="task-text">${this.highlightSearchTerm(task.text)}</span>
+                    <span class="task-meta">
+                        ${new Date(task.createdAt).toLocaleDateString()}
+                    </span>
                 </div>
-            `;
-        }).join('');
+                <div class="task-actions">
+                    <button class="task-btn edit-btn" onclick="taskFlow.editTask(${task.id})" title="Edit task">
+                        ✏️
+                    </button>
+                    <button class="task-btn delete-btn" onclick="taskFlow.deleteTask(${task.id})" title="Delete task">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        this.updateSearchResults();
+
     }
 
     updateStats() {
         const totalTasks = this.tasks.length;
         const completedTasks = this.tasks.filter(task => task.completed).length;
         const pendingTasks = totalTasks - completedTasks;
-        const overdueTasks = this.tasks.filter(task => this.isOverdue(task)).length;
+
+        const filteredTasks = this.getFilteredTasks().length;
+
 
         document.getElementById('totalTasks').textContent = totalTasks;
         document.getElementById('completedTasks').textContent = completedTasks;
         document.getElementById('pendingTasks').textContent = pendingTasks;
-        document.getElementById('overdueTasks').textContent = overdueTasks;
+
+        document.getElementById('filteredTasks').textContent = filteredTasks;
+
 
         // Update task count in header
         const taskCount = document.getElementById('taskCount');
@@ -436,9 +525,12 @@ class TaskFlow {
             total: this.tasks.length,
             completed: this.tasks.filter(t => t.completed).length,
             pending: this.tasks.filter(t => !t.completed).length,
-            dueToday: this.tasks.filter(t => t.dueDate === today && !t.completed).length,
-            overdue: this.tasks.filter(t => this.isOverdue(t)).length,
-            upcoming: this.tasks.filter(t => t.dueDate && t.dueDate > today && !t.completed).length,
+
+            filtered: this.getFilteredTasks().length,
+            searchQuery: this.searchQuery,
+            currentFilter: this.currentFilter,
+            currentSort: this.currentSort,
+
             createdToday: this.tasks.filter(t => {
                 const taskDate = new Date(t.createdAt);
                 return taskDate.toDateString() === now.toDateString();
@@ -447,9 +539,59 @@ class TaskFlow {
                 if (!t.completedAt) return false;
                 const completedDate = new Date(t.completedAt);
                 return completedDate.toDateString() === now.toDateString();
+            }).length,
+            recent: this.tasks.filter(t => {
+                const taskCreated = new Date(t.createdAt);
+                return (now - taskCreated) < (24 * 60 * 60 * 1000);
             }).length
         };
         return stats;
+    }
+
+    // Advanced search functionality
+    searchByKeyword(keyword) {
+        this.searchQuery = keyword.toLowerCase();
+        document.getElementById('searchInput').value = keyword;
+        this.renderTasks();
+        this.updateSearchResults();
+    }
+
+    // Bulk operations
+    markAllCompleted() {
+        const filteredTasks = this.getFilteredTasks();
+        const pendingTasks = filteredTasks.filter(task => !task.completed);
+
+        if (pendingTasks.length === 0) {
+            this.showNotification('No pending tasks to complete', 'info');
+            return;
+        }
+
+        pendingTasks.forEach(task => {
+            task.completed = true;
+            task.completedAt = new Date().toISOString();
+        });
+
+        this.saveTasks();
+        this.renderTasks();
+        this.updateStats();
+        this.showNotification(`Marked ${pendingTasks.length} tasks as completed`, 'success');
+    }
+
+    deleteCompleted() {
+        const completedTasks = this.tasks.filter(task => task.completed);
+
+        if (completedTasks.length === 0) {
+            this.showNotification('No completed tasks to delete', 'info');
+            return;
+        }
+
+        if (confirm(`Delete ${completedTasks.length} completed tasks? This cannot be undone.`)) {
+            this.tasks = this.tasks.filter(task => !task.completed);
+            this.saveTasks();
+            this.renderTasks();
+            this.updateStats();
+            this.showNotification(`Deleted ${completedTasks.length} completed tasks`, 'success');
+        }
     }
 }
 
