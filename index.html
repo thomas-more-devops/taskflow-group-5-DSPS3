@@ -29,6 +29,34 @@
             <div class="task-input-section">
                 <div class="input-container">
                     <input type="text" id="taskInput" placeholder="What needs to be done?" class="task-input">
+ feature/task-categories
+                    <div class="input-options">
+                        <div class="date-input-container">
+                            <label for="dueDateInput" class="date-label">Due:</label>
+                            <input type="date" id="dueDateInput" class="date-input">
+                        </div>
+                    </div>
+                   
+            <div class="due-date-filters">
+                <h3>Filter by Due Date:</h3>
+                <div class="due-date-filter-buttons">
+                    <button class="due-date-filter-btn active" data-filter="all">
+                        <span class="filter-icon">📋</span>
+                        All Tasks
+                    </button>
+                    <button class="due-date-filter-btn" data-filter="due-today">
+                        <span class="filter-icon">📅</span>
+                        Due Today
+                    </button>
+                    <button class="due-date-filter-btn" data-filter="overdue">
+                        <span class="filter-icon">⚠️</span>
+                        Overdue
+                    </button>
+                    <button class="due-date-filter-btn" data-filter="no-due-date">
+                        <span class="filter-icon">📝</span>
+                        No Due Date
+                    </button>
+
 
                     <button id="addTaskBtn" class="add-btn">
                         <span class="add-icon">+</span>
@@ -91,6 +119,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
 
