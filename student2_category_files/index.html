@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow - Task Management App</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="icon">📋</span>
+                    TaskFlow
+                </h1>
+                <p class="app-subtitle">Streamline your productivity</p>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="task-input-section">
+                <div class="input-container">
+                    <input type="text" id="taskInput" placeholder="What needs to be done?" class="task-input">
+                    <div class="input-options">
+                        <select id="categorySelect" class="category-select">
+                            <option value="personal">📝 Personal</option>
+                            <option value="work">💼 Work</option>
+                            <option value="shopping">🛒 Shopping</option>
+                            <option value="health">🏥 Health</option>
+                            <option value="study">📚 Study</option>
+                        </select>
+                    </div>
+                    <button id="addTaskBtn" class="add-btn">
+                        <span class="add-icon">+</span>
+                        Add Task
+                    </button>
+                </div>
+            </div>
+
+            <!-- Category Filter Section -->
+            <div class="category-filters">
+                <h3>Filter by Category:</h3>
+                <div class="category-filter-buttons">
+                    <button class="category-filter-btn active" data-category="all">
+                        <span class="filter-icon">🔍</span>
+                        All Categories
+                    </button>
+                    <button class="category-filter-btn" data-category="work">
+                        <span class="filter-icon">💼</span>
+                        Work
+                    </button>
+                    <button class="category-filter-btn" data-category="personal">
+                        <span class="filter-icon">📝</span>
+                        Personal
+                    </button>
+                    <button class="category-filter-btn" data-category="shopping">
+                        <span class="filter-icon">🛒</span>
+                        Shopping
+                    </button>
+                    <button class="category-filter-btn" data-category="health">
+                        <span class="filter-icon">🏥</span>
+                        Health
+                    </button>
+                    <button class="category-filter-btn" data-category="study">
+                        <span class="filter-icon">📚</span>
+                        Study
+                    </button>
+                </div>
+            </div>
+
+            <div class="tasks-section">
+                <div class="tasks-header">
+                    <h2>Your Tasks</h2>
+                    <span id="taskCount" class="task-count">0 tasks</span>
+                </div>
+                <div id="tasksList" class="tasks-list">
+                    <!-- Tasks will be dynamically added here -->
+                </div>
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-icon">✨</div>
+                    <h3>No tasks yet</h3>
+                    <p>Add your first task above to get started!</p>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalTasks">0</span>
+                        <span class="stat-label">Total Tasks</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="completedTasks">0</span>
+                        <span class="stat-label">Completed</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="pendingTasks">0</span>
+                        <span class="stat-label">Pending</span>
+                    </div>
+                    <div class="stat-card category-stats">
+                        <span class="stat-number" id="categoriesUsed">0</span>
+                        <span class="stat-label">Categories</span>
+                    </div>
+                </div>
+
+                <div class="detailed-analytics">
+                    <div class="analytics-section">
+                        <h3>Category Breakdown</h3>
+                        <div id="categoryStats" class="category-stats-list">
+                            <!-- Category statistics will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 TaskFlow. Built with HTML, CSS, and JavaScript.</p>
+        </footer>
+    </div>
+
+    <script src="scripts/app.js"></script>
+</body>
+</html>
