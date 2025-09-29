@@ -3,12 +3,16 @@ class TaskFlow {
         this.tasks = this.loadTasks();
         this.taskIdCounter = this.getNextTaskId();
         this.currentFilter = 'all';
+
         this.currentSort = 'created-desc';
         this.searchQuery = '';
+
+
         this.initializeApp();
         this.bindEvents();
         this.renderTasks();
         this.updateStats();
+
     }
 
     initializeApp() {
@@ -21,6 +25,7 @@ class TaskFlow {
             console.log('Welcome to TaskFlow! Add your first task to get started.');
         }
     }
+
 
     bindEvents() {
         const addTaskBtn = document.getElementById('addTaskBtn');
@@ -38,6 +43,7 @@ class TaskFlow {
                 this.addTask();
             }
         });
+
 
         // Search functionality
         searchInput.addEventListener('input', (e) => {
@@ -82,7 +88,9 @@ class TaskFlow {
 
     addTask() {
         const taskInput = document.getElementById('taskInput');
+        const dueDateInput = document.getElementById('dueDateInput');
         const taskText = taskInput.value.trim();
+        const dueDate = dueDateInput.value;
 
         if (taskText === '') {
             this.showNotification('Please enter a task description', 'warning');
@@ -93,6 +101,7 @@ class TaskFlow {
         const newTask = {
             id: this.taskIdCounter++,
             text: taskText,
+
             completed: false,
             createdAt: new Date().toISOString(),
             completedAt: null
@@ -104,6 +113,7 @@ class TaskFlow {
         this.updateStats();
 
         taskInput.value = '';
+        this.setDefaultDueDate();
         taskInput.focus();
 
         this.showNotification('Task added successfully!', 'success');
@@ -146,16 +156,19 @@ class TaskFlow {
         }
     }
 
+
     setFilter(filter) {
         this.currentFilter = filter;
 
         // Update button states
         document.querySelectorAll('.filter-btn').forEach(btn => {
+
             btn.classList.remove('active');
         });
         document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
 
         this.renderTasks();
+
         this.updateSearchResults();
     }
 
@@ -200,21 +213,25 @@ class TaskFlow {
         const taskCreated = new Date(task.createdAt);
         const isRecent = (now - taskCreated) < (24 * 60 * 60 * 1000); // Last 24 hours
 
+
         switch (this.currentFilter) {
             case 'all':
                 return true;
+
             case 'completed':
                 return task.completed;
             case 'pending':
                 return !task.completed;
             case 'recent':
                 return isRecent;
+
             default:
                 return true;
         }
     }
 
     getFilteredTasks() {
+
         return this.tasks.filter(task =>
             this.matchesSearch(task) && this.matchesFilter(task)
         );
@@ -264,12 +281,14 @@ class TaskFlow {
             searchResults.style.display = 'inline';
         } else {
             searchResults.style.display = 'none';
+
         }
     }
 
     renderTasks() {
         const tasksList = document.getElementById('tasksList');
         const emptyState = document.getElementById('emptyState');
+
         const noResults = document.getElementById('noResults');
         const filteredTasks = this.getFilteredTasks();
         const sortedTasks = this.getSortedTasks(filteredTasks);
@@ -280,6 +299,7 @@ class TaskFlow {
 
         if (this.tasks.length === 0) {
             // No tasks at all
+
             tasksList.style.display = 'none';
             emptyState.style.display = 'block';
             return;
@@ -291,6 +311,7 @@ class TaskFlow {
             noResults.style.display = 'block';
             return;
         }
+
 
         // Show tasks
         tasksList.style.display = 'flex';
@@ -318,22 +339,61 @@ class TaskFlow {
         `).join('');
 
         this.updateSearchResults();
+
     }
 
     updateStats() {
         const totalTasks = this.tasks.length;
         const completedTasks = this.tasks.filter(task => task.completed).length;
         const pendingTasks = totalTasks - completedTasks;
+
         const filteredTasks = this.getFilteredTasks().length;
+
 
         document.getElementById('totalTasks').textContent = totalTasks;
         document.getElementById('completedTasks').textContent = completedTasks;
         document.getElementById('pendingTasks').textContent = pendingTasks;
+
         document.getElementById('filteredTasks').textContent = filteredTasks;
+
 
         // Update task count in header
         const taskCount = document.getElementById('taskCount');
         taskCount.textContent = `${totalTasks} ${totalTasks === 1 ? 'task' : 'tasks'}`;
+
+        // Update due date statistics
+        this.updateDueDateStats();
+    }
+
+    updateDueDateStats() {
+        const dueDateStats = document.getElementById('dueDateStats');
+        const today = new Date().toISOString().split('T')[0];
+
+        const stats = {
+            dueToday: this.tasks.filter(task => task.dueDate === today && !task.completed).length,
+            overdue: this.tasks.filter(task => this.isOverdue(task)).length,
+            upcoming: this.tasks.filter(task => task.dueDate && task.dueDate > today && !task.completed).length,
+            noDueDate: this.tasks.filter(task => !task.dueDate && !task.completed).length
+        };
+
+        dueDateStats.innerHTML = `
+            <div class="stat-item">
+                <span class="stat-icon">📅</span>
+                <span class="stat-text">Due Today: ${stats.dueToday}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">⚠️</span>
+                <span class="stat-text">Overdue: ${stats.overdue}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">📋</span>
+                <span class="stat-text">Upcoming: ${stats.upcoming}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">📝</span>
+                <span class="stat-text">No Due Date: ${stats.noDueDate}</span>
+            </div>
+        `;
     }
 
     saveTasks() {
@@ -349,7 +409,13 @@ class TaskFlow {
     loadTasks() {
         try {
             const saved = localStorage.getItem('taskflow_tasks');
-            return saved ? JSON.parse(saved) : [];
+            const tasks = saved ? JSON.parse(saved) : [];
+
+            // Add default due date to existing tasks for backward compatibility
+            return tasks.map(task => ({
+                ...task,
+                dueDate: task.dueDate || null
+            }));
         } catch (error) {
             console.error('Failed to load tasks:', error);
             return [];
@@ -453,14 +519,18 @@ class TaskFlow {
 
     getTaskStats() {
         const now = new Date();
+        const today = now.toISOString().split('T')[0];
+
         const stats = {
             total: this.tasks.length,
             completed: this.tasks.filter(t => t.completed).length,
             pending: this.tasks.filter(t => !t.completed).length,
+
             filtered: this.getFilteredTasks().length,
             searchQuery: this.searchQuery,
             currentFilter: this.currentFilter,
             currentSort: this.currentSort,
+
             createdToday: this.tasks.filter(t => {
                 const taskDate = new Date(t.createdAt);
                 return taskDate.toDateString() === now.toDateString();

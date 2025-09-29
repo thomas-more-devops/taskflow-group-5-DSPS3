@@ -78,6 +78,50 @@ body {
     align-items: center;
 }
 
+.input-options {
+    display: grid;
+    grid-template-columns: auto;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.date-input-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f8fafc;
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.date-input-container:focus-within {
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.date-label {
+    font-size: 0.9rem;
+    color: #4a5568;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.date-input {
+    border: none;
+    background: transparent;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: #4a5568;
+    cursor: pointer;
+}
+
+.date-input:focus {
+    outline: none;
+}
+
 .task-input {
     flex: 1;
     border: 2px solid #e2e8f0;
@@ -130,14 +174,17 @@ body {
     font-weight: bold;
 }
 
+
 /* Search & Filter Section */
 .search-filter-section {
+
     background: rgba(255, 255, 255, 0.95);
     border-radius: 16px;
     padding: 1.5rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
 }
+
 
 .search-container {
     margin-bottom: 1.5rem;
@@ -204,19 +251,24 @@ body {
 }
 
 .filter-section h3 {
+
     margin-bottom: 1rem;
     color: #2d3748;
     font-size: 1.1rem;
     font-weight: 600;
 }
 
+
 .quick-filters {
+
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 0.75rem;
 }
 
+
 .filter-btn {
+
     background: #f8fafc;
     border: 2px solid #e2e8f0;
     border-radius: 8px;
@@ -233,11 +285,14 @@ body {
 }
 
 .filter-btn:hover {
+
     background: #e2e8f0;
     transform: translateY(-1px);
 }
 
+
 .filter-btn.active {
+
     background: #667eea;
     border-color: #667eea;
     color: white;
@@ -340,6 +395,7 @@ body {
     transform: translateY(-1px);
 }
 
+
 /* Tasks Section */
 .tasks-section {
     background: rgba(255, 255, 255, 0.95);
@@ -416,6 +472,51 @@ body {
     background: #f0fff4;
     border-color: #9ae6b4;
     opacity: 0.8;
+}
+
+.task-item.overdue {
+    border-left: 4px solid #e53e3e;
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    animation: pulse-warning 2s infinite;
+}
+
+.task-item.due-today {
+    border-left: 4px solid #ed8936;
+    background: linear-gradient(135deg, #fffaf0 0%, #feebc8 100%);
+}
+
+@keyframes pulse-warning {
+    0%, 100% { box-shadow: 0 4px 15px rgba(229, 62, 62, 0.2); }
+    50% { box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4); }
+}
+
+.due-date-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.due-date-badge.due-today {
+    background: #ed8936;
+    color: white;
+}
+
+.due-date-badge.overdue {
+    background: #e53e3e;
+    color: white;
+    animation: pulse-badge 1.5s infinite;
+}
+
+@keyframes pulse-badge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
 .task-content {
@@ -541,6 +642,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1rem;
+    margin-bottom: 2rem;
 }
 
 .stat-card {
@@ -551,6 +653,7 @@ body {
     border: 1px solid #e2e8f0;
 }
 
+
 .stat-card.search-stats {
     background: linear-gradient(135deg, #e6f3ff 0%, #bee3f8 100%);
     border-color: #90cdf4;
@@ -558,6 +661,7 @@ body {
 
 .search-stats .stat-number {
     color: #3182ce;
+
 }
 
 .stat-number {
@@ -571,6 +675,44 @@ body {
 .stat-label {
     font-size: 0.9rem;
     color: #718096;
+    font-weight: 500;
+}
+
+.detailed-analytics {
+    border-top: 2px solid #f1f5f9;
+    padding-top: 1.5rem;
+}
+
+.analytics-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.due-date-stats-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.stat-icon {
+    font-size: 1.2rem;
+}
+
+.stat-text {
+    font-size: 0.9rem;
+    color: #4a5568;
     font-weight: 500;
 }
 
@@ -600,9 +742,11 @@ body {
         gap: 1rem;
     }
 
+
     .add-btn {
         justify-content: center;
     }
+
 
     .filter-container {
         gap: 1rem;
@@ -628,6 +772,7 @@ body {
         padding: 1rem;
     }
 
+
     .task-content {
         flex-wrap: wrap;
         gap: 0.5rem;
@@ -643,6 +788,16 @@ body {
 
     .search-input-wrapper {
         font-size: 16px; /* Prevent zoom on iOS */
+
+    }
+
+    .due-date-filter-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .due-date-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
     }
 }
 
@@ -659,6 +814,7 @@ body {
         padding: 1.5rem;
     }
 
+
     .quick-filters {
         grid-template-columns: 1fr;
     }
@@ -673,6 +829,7 @@ body {
         align-self: stretch;
         flex-direction: row;
         justify-content: space-between;
+
     }
 }
 
