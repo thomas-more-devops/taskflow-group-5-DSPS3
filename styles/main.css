@@ -85,41 +85,24 @@ body {
     align-items: center;
 }
 
-.date-input-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: #f8fafc;
-    padding: 0.5rem;
-    border-radius: 8px;
+.category-select {
     border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: #f8fafc;
+    color: #4a5568;
     transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 140px;
 }
 
-.date-input-container:focus-within {
+.category-select:focus {
+    outline: none;
     border-color: #667eea;
     background: white;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.date-label {
-    font-size: 0.9rem;
-    color: #4a5568;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.date-input {
-    border: none;
-    background: transparent;
-    font-size: 0.9rem;
-    font-family: inherit;
-    color: #4a5568;
-    cursor: pointer;
-}
-
-.date-input:focus {
-    outline: none;
 }
 
 .task-input {
@@ -174,8 +157,8 @@ body {
     font-weight: bold;
 }
 
-/* Due Date Filter Section */
-.due-date-filters {
+/* Category Filter Section */
+.category-filters {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 16px;
     padding: 1.5rem;
@@ -183,20 +166,20 @@ body {
     margin-bottom: 2rem;
 }
 
-.due-date-filters h3 {
+.category-filters h3 {
     margin-bottom: 1rem;
     color: #2d3748;
     font-size: 1.1rem;
     font-weight: 600;
 }
 
-.due-date-filter-buttons {
+.category-filter-buttons {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 0.75rem;
 }
 
-.due-date-filter-btn {
+.category-filter-btn {
     background: #f8fafc;
     border: 2px solid #e2e8f0;
     border-radius: 8px;
@@ -212,12 +195,12 @@ body {
     color: #4a5568;
 }
 
-.due-date-filter-btn:hover {
+.category-filter-btn:hover {
     background: #e2e8f0;
     transform: translateY(-1px);
 }
 
-.due-date-filter-btn.active {
+.category-filter-btn.active {
     background: #667eea;
     border-color: #667eea;
     color: white;
@@ -291,23 +274,28 @@ body {
     opacity: 0.8;
 }
 
-.task-item.overdue {
-    border-left: 4px solid #e53e3e;
-    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
-    animation: pulse-warning 2s infinite;
+/* Category-based styling */
+.task-item.category-work {
+    border-left: 4px solid #3182ce;
 }
 
-.task-item.due-today {
+.task-item.category-personal {
+    border-left: 4px solid #38a169;
+}
+
+.task-item.category-shopping {
     border-left: 4px solid #ed8936;
-    background: linear-gradient(135deg, #fffaf0 0%, #feebc8 100%);
 }
 
-@keyframes pulse-warning {
-    0%, 100% { box-shadow: 0 4px 15px rgba(229, 62, 62, 0.2); }
-    50% { box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4); }
+.task-item.category-health {
+    border-left: 4px solid #e53e3e;
 }
 
-.due-date-badge {
+.task-item.category-study {
+    border-left: 4px solid #805ad5;
+}
+
+.category-badge {
     padding: 0.25rem 0.75rem;
     border-radius: 12px;
     font-size: 0.75rem;
@@ -316,24 +304,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    background: #e2e8f0;
-    color: #4a5568;
-}
-
-.due-date-badge.due-today {
-    background: #ed8936;
     color: white;
-}
-
-.due-date-badge.overdue {
-    background: #e53e3e;
-    color: white;
-    animation: pulse-badge 1.5s infinite;
-}
-
-@keyframes pulse-badge {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
 }
 
 .task-content {
@@ -452,13 +423,13 @@ body {
     border: 1px solid #e2e8f0;
 }
 
-.stat-card.overdue-stats {
-    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
-    border-color: #feb2b2;
+.stat-card.category-stats {
+    background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+    border-color: #81e6d9;
 }
 
-.overdue-stats .stat-number {
-    color: #e53e3e;
+.category-stats .stat-number {
+    color: #38a169;
 }
 
 .stat-number {
@@ -487,30 +458,76 @@ body {
     margin-bottom: 1rem;
 }
 
-.due-date-stats-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.75rem;
+.category-stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.stat-item {
+.category-stat-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.category-stat-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    background: #f8fafc;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
 }
 
-.stat-icon {
+.category-icon {
     font-size: 1.2rem;
 }
 
-.stat-text {
-    font-size: 0.9rem;
+.category-name {
+    flex: 1;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.category-total {
+    background: #e2e8f0;
     color: #4a5568;
-    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.category-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    color: #718096;
+    white-space: nowrap;
+}
+
+.no-categories {
+    color: #718096;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
 }
 
 /* Footer */
@@ -556,13 +573,23 @@ body {
         align-items: flex-start;
     }
 
-    .due-date-filter-buttons {
+    .category-filter-buttons {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .due-date-badge {
+    .category-badge {
         font-size: 0.7rem;
         padding: 0.2rem 0.5rem;
+    }
+
+    .category-progress {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .progress-text {
+        text-align: center;
     }
 }
 
@@ -585,16 +612,12 @@ body {
         gap: 0.5rem;
     }
 
-    .due-date-badge {
+    .category-badge {
         margin-left: 0;
         align-self: flex-start;
     }
 
-    .due-date-filter-buttons {
-        grid-template-columns: 1fr;
-    }
-
-    .due-date-stats-list {
+    .category-filter-buttons {
         grid-template-columns: 1fr;
     }
 }
